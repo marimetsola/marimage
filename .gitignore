@@ -1,0 +1,29 @@
+# Environment
+# Local environment variables and secrets
+.env
+
+# Temporary / editor files
+# Editor backup and temporary files
+*~
+.*.un~
+
+# Uploaded images
+# Uploaded images are runtime data and should not be stored in Git
+storage/images/*
+# Keep the directory itself in the repository
+!storage/images/.gitkeep
+
+# Python cache / compiled files
+__pycache__/
+*.py[cod]
+
+# Node.js dependencies and build output
+node_modules/
+dist/
+build/
+
+# IDE configuration
+.idea/
+
+# Log files
+*.log
