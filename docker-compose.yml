@@ -6,3 +6,20 @@ services:
     volumes:
       - ${IMAGE_DIR}:/usr/share/nginx/html/i:ro
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://imagehost:${POSTGRES_PASSWORD}@db:5432/imagehost
+
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: imagehost
+      POSTGRES_USER: imagehost
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+volumes:
+  postgres_data:
