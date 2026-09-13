@@ -1,10 +1,13 @@
 from fastapi import FastAPI
 
-from app.database import test_database_connection
+from app.database import create_tables, test_database_connection
 
 
 app = FastAPI(title="Image Host API")
 
+@app.on_event("startup")
+def startup():
+    create_tables()
 
 @app.get("/api/test")
 def test():

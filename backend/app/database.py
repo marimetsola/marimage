@@ -3,6 +3,7 @@ import os
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
+from app.models import Base
 
 DATABASE_URL = os.environ["DATABASE_URL"]
 
@@ -20,3 +21,6 @@ def test_database_connection() -> bool:
         connection.execute(text("SELECT 1"))
 
     return True
+
+def create_tables() -> None:
+    Base.metadata.create_all(bind=engine)
