@@ -11,7 +11,7 @@ services:
     build: ./backend
     environment:
       DATABASE_URL: postgresql+psycopg://imagehost:${POSTGRES_PASSWORD}@db:5432/imagehost
-
+      REGISTER_ENABLED: ${REGISTER_ENABLED}
   db:
     image: postgres:18
     environment:
