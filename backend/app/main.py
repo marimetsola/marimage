@@ -34,7 +34,6 @@ def startup():
 def test():
     return {"message": "FastAPI is working"}
 
-
 @app.get("/api/db-test")
 def database_test():
     connected = test_database_connection()
@@ -116,4 +115,4 @@ def get_current_user(request: Request):
                 detail="Not authenticated",
             )
 
-        return user
+        return user 
