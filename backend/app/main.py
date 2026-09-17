@@ -1,9 +1,14 @@
 import os
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request
 from starlette.middleware.sessions import SessionMiddleware
 
-from app.database import SessionLocal, create_tables, test_database_connection
+from app.database import (
+    SessionLocal,
+    create_tables,
+    test_database_connection,
+)
+from app.dependencies import get_current_user
 from app.models import User
 from app.schemas import LoginRequest, UserCreate, UserResponse
 from app.security import hash_password, verify_password
@@ -94,25 +99,13 @@ def login(login_data: LoginRequest, request: Request):
         return user
 
 
+@app.post("/api/logout")
+def logout(request: Request):
+    request.session.clear()
+
+    return {"message": "Logged out"}
+
+
 @app.get("/api/me", response_model=UserResponse)
-def get_current_user(request: Request):
-    user_id = request.session.get("user_id")
-
-    if user_id is None:
-        raise HTTPException(
-            status_code=401,
-            detail="Not authenticated",
-        )
-
-    with SessionLocal() as db:
-        user = db.get(User, user_id)
-
-        if user is None:
-            request.session.clear()
-
-            raise HTTPException(
-                status_code=401,
-                detail="Not authenticated",
-            )
-
-        return user 
+def get_me(current_user: User = Depends(get_current_user)):
+    return current_user

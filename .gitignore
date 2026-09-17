@@ -27,3 +27,7 @@ build/
 
 # Log files
 *.log
+
+# Vim swap files
+*.swp
+*.swo
