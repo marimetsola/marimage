@@ -17,3 +17,12 @@ class UserResponse(BaseModel):
     id: int
     username: str
     created_at: datetime
+
+
+class ImageResponse(BaseModel):
+    id: int
+    original_filename: str
+    mime_type: str
+    file_size: int
+    uploaded_at: datetime
+    url: str

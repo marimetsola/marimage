@@ -1,6 +1,9 @@
 import os
 
-from fastapi import Depends, FastAPI, HTTPException, Request
+from pathlib import Path
+from uuid import uuid4
+
+from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.database import (
@@ -9,10 +12,9 @@ from app.database import (
     test_database_connection,
 )
 from app.dependencies import get_current_user
-from app.models import User
-from app.schemas import LoginRequest, UserCreate, UserResponse
-from app.security import hash_password, verify_password
-
+from app.models import Image, User
+from app.schemas import ImageResponse, LoginRequest, UserCreate, UserResponse
+from app.storage import ALLOWED_MIME_TYPES, MAX_FILE_SIZE, STORAGE_DIR
 
 app = FastAPI(title="Image Host API")
 
@@ -109,3 +111,72 @@ def logout(request: Request):
 @app.get("/api/me", response_model=UserResponse)
 def get_me(current_user: User = Depends(get_current_user)):
     return current_user
+
+
+@app.post("/api/upload", response_model=ImageResponse)
+def upload_image(
+    file: UploadFile,
+    current_user: User = Depends(get_current_user),
+):
+    if file.content_type not in ALLOWED_MIME_TYPES:
+        raise HTTPException(
+            status_code=400,
+            detail="Unsupported image type",
+        )
+
+    if not file.filename:
+        raise HTTPException(
+            status_code=400,
+            detail="Filename is missing",
+        )
+
+    STORAGE_DIR.mkdir(parents=True, exist_ok=True)
+
+    extension = ALLOWED_MIME_TYPES[file.content_type]
+    storage_filename = f"{uuid4().hex}{extension}"
+    storage_path = STORAGE_DIR / storage_filename
+
+    file_size = 0
+
+    try:
+        with storage_path.open("wb") as destination:
+            while chunk := file.file.read(1024 * 1024):
+                file_size += len(chunk)
+
+                if file_size > MAX_FILE_SIZE:
+                    raise HTTPException(
+                        status_code=413,
+                        detail="File is too large",
+                    )
+
+                destination.write(chunk)
+
+        with SessionLocal() as db:
+            image = Image(
+                owner_id=current_user.id,
+                original_filename=file.filename,
+                storage_filename=storage_filename,
+                mime_type=file.content_type,
+                file_size=file_size,
+            )
+
+            db.add(image)
+            db.commit()
+            db.refresh(image)
+
+            return ImageResponse(
+                id=image.id,
+                original_filename=image.original_filename,
+                mime_type=image.mime_type,
+                file_size=image.file_size,
+                uploaded_at=image.uploaded_at,
+                url=f"/i/{image.storage_filename}",
+            )
+
+    except HTTPException:
+        storage_path.unlink(missing_ok=True)
+        raise
+
+    except Exception:
+        storage_path.unlink(missing_ok=True)
+        raise
