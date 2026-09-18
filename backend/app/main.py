@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from uuid import uuid4
 
-from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile
+from fastapi import Depends, FastAPI, HTTPException, Request, UploadFile
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.database import (
@@ -14,7 +14,13 @@ from app.database import (
 from app.dependencies import get_current_user
 from app.models import Image, User
 from app.schemas import ImageResponse, LoginRequest, UserCreate, UserResponse
-from app.storage import ALLOWED_MIME_TYPES, MAX_FILE_SIZE, STORAGE_DIR
+from app.security import hash_password, verify_password
+from app.storage import (
+    ALLOWED_MIME_TYPES,
+    MAX_FILE_SIZE,
+    STORAGE_DIR,
+    sanitize_image,
+)
 
 app = FastAPI(title="Image Host API")
 
@@ -29,6 +35,7 @@ app.add_middleware(
     max_age=60 * 60 * 24 * 7,
     https_only=False,
     same_site="lax",
+# Convert unsupported color modes to a JPEG-compatible mode.
 )
 
 
@@ -112,7 +119,6 @@ def logout(request: Request):
 def get_me(current_user: User = Depends(get_current_user)):
     return current_user
 
-
 @app.post("/api/upload", response_model=ImageResponse)
 def upload_image(
     file: UploadFile,
@@ -130,26 +136,32 @@ def upload_image(
             detail="Filename is missing",
         )
 
-    STORAGE_DIR.mkdir(parents=True, exist_ok=True)
+    file.file.seek(0, 2)  # Move to the end of the uploaded file.
+    input_size = file.file.tell()  # Get the file size from the current position.
+    file.file.seek(0)  # Move back to the beginning before reading the file.
 
-    extension = ALLOWED_MIME_TYPES[file.content_type]
+    if input_size > MAX_FILE_SIZE:
+        raise HTTPException(
+            status_code=413,
+            detail="File is too large",
+        )
+
+    STORAGE_DIR.mkdir(parents=True, exist_ok=True)
+    
+    image_type = ALLOWED_MIME_TYPES[file.content_type]
+
+    extension = image_type["extension"]
+    image_format = image_type["format"]
+    
     storage_filename = f"{uuid4().hex}{extension}"
     storage_path = STORAGE_DIR / storage_filename
 
-    file_size = 0
-
     try:
-        with storage_path.open("wb") as destination:
-            while chunk := file.file.read(1024 * 1024):
-                file_size += len(chunk)
-
-                if file_size > MAX_FILE_SIZE:
-                    raise HTTPException(
-                        status_code=413,
-                        detail="File is too large",
-                    )
-
-                destination.write(chunk)
+        file_size = sanitize_image(
+            file.file,
+            storage_path,
+            image_format,
+        )
 
         with SessionLocal() as db:
             image = Image(
@@ -173,9 +185,13 @@ def upload_image(
                 url=f"/i/{image.storage_filename}",
             )
 
-    except HTTPException:
+    except ValueError as exc:
         storage_path.unlink(missing_ok=True)
-        raise
+
+        raise HTTPException(
+            status_code=400,
+            detail=str(exc),
+        ) from exc
 
     except Exception:
         storage_path.unlink(missing_ok=True)
