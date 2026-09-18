@@ -35,7 +35,6 @@ app.add_middleware(
     max_age=60 * 60 * 24 * 7,
     https_only=False,
     same_site="lax",
-# Convert unsupported color modes to a JPEG-compatible mode.
 )
 
 
@@ -119,6 +118,32 @@ def logout(request: Request):
 def get_me(current_user: User = Depends(get_current_user)):
     return current_user
 
+
+@app.get("/api/images", response_model=list[ImageResponse])
+def get_my_images(
+    current_user: User = Depends(get_current_user),
+):
+    with SessionLocal() as db:
+        images = (
+            db.query(Image)
+            .filter(Image.owner_id == current_user.id)
+            .order_by(Image.uploaded_at.desc())
+            .all()
+        )
+
+        return [
+            ImageResponse(
+                id=image.id,
+                original_filename=image.original_filename,
+                mime_type=image.mime_type,
+                file_size=image.file_size,
+                uploaded_at=image.uploaded_at,
+                url=f"/i/{image.storage_filename}",
+            )
+            for image in images
+        ]
+
+
 @app.post("/api/upload", response_model=ImageResponse)
 def upload_image(
     file: UploadFile,
@@ -196,3 +221,32 @@ def upload_image(
     except Exception:
         storage_path.unlink(missing_ok=True)
         raise
+
+
+@app.delete("/api/images/{image_id}", status_code=204)
+def delete_image(
+    image_id: int,
+    current_user: User = Depends(get_current_user),
+):
+    with SessionLocal() as db:
+        image = (
+            db.query(Image)
+            .filter(
+                Image.id == image_id,
+                Image.owner_id == current_user.id,
+            )
+            .first()
+        )
+
+        if image is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Image not found",
+            )
+
+        storage_path = STORAGE_DIR / image.storage_filename
+
+        db.delete(image)
+        db.commit()
+
+        storage_path.unlink(missing_ok=True)
