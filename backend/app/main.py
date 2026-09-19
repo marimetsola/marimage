@@ -19,7 +19,9 @@ from app.storage import (
     ALLOWED_MIME_TYPES,
     MAX_FILE_SIZE,
     STORAGE_DIR,
-    sanitize_image,
+    THUMBNAIL_DIR,
+    create_thumbnail,
+    sanitize_and_save_image,
 )
 
 app = FastAPI(title="Image Host API")
@@ -172,6 +174,7 @@ def upload_image(
         )
 
     STORAGE_DIR.mkdir(parents=True, exist_ok=True)
+    THUMBNAIL_DIR.mkdir(parents=True, exist_ok=True)
     
     image_type = ALLOWED_MIME_TYPES[file.content_type]
 
@@ -181,11 +184,19 @@ def upload_image(
     storage_filename = f"{uuid4().hex}{extension}"
     storage_path = STORAGE_DIR / storage_filename
 
+    thumbnail_filename = f"{Path(storage_filename).stem}.webp"
+    thumbnail_path = THUMBNAIL_DIR / thumbnail_filename
+
     try:
-        file_size = sanitize_image(
+        file_size = sanitize_and_save_image(
             file.file,
             storage_path,
             image_format,
+        )
+
+        create_thumbnail(
+            storage_path,
+            thumbnail_path,
         )
 
         with SessionLocal() as db:
@@ -205,13 +216,14 @@ def upload_image(
                 id=image.id,
                 original_filename=image.original_filename,
                 mime_type=image.mime_type,
-                file_size=image.file_size,
+                file_size=file_size,
                 uploaded_at=image.uploaded_at,
                 url=f"/i/{image.storage_filename}",
             )
 
     except ValueError as exc:
         storage_path.unlink(missing_ok=True)
+        thumbnail_path.unlink(missing_ok=True)
 
         raise HTTPException(
             status_code=400,
@@ -220,8 +232,8 @@ def upload_image(
 
     except Exception:
         storage_path.unlink(missing_ok=True)
+        thumbnail_path.unlink(missing_ok=True)
         raise
-
 
 @app.delete("/api/images/{image_id}", status_code=204)
 def delete_image(

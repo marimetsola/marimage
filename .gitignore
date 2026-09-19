@@ -13,6 +13,10 @@ storage/images/*
 # Keep the directory itself in the repository
 !storage/images/.gitkeep
 
+# Generated thumbnails
+storage/thumbnails/*
+!storage/thumbnails/.gitkeep
+
 # Python cache / compiled files
 __pycache__/
 *.py[cod]
