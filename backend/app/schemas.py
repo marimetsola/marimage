@@ -26,3 +26,4 @@ class ImageResponse(BaseModel):
     file_size: int
     uploaded_at: datetime
     url: str
+    thumbnail_url: str

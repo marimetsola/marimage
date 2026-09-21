@@ -141,10 +141,12 @@ def get_my_images(
                 file_size=image.file_size,
                 uploaded_at=image.uploaded_at,
                 url=f"/i/{image.storage_filename}",
+                thumbnail_url=(
+                    f"/t/{Path(image.storage_filename).stem}.webp"
+                ),
             )
             for image in images
         ]
-
 
 @app.post("/api/upload", response_model=ImageResponse)
 def upload_image(
@@ -175,12 +177,10 @@ def upload_image(
 
     STORAGE_DIR.mkdir(parents=True, exist_ok=True)
     THUMBNAIL_DIR.mkdir(parents=True, exist_ok=True)
-    
     image_type = ALLOWED_MIME_TYPES[file.content_type]
 
     extension = image_type["extension"]
     image_format = image_type["format"]
-    
     storage_filename = f"{uuid4().hex}{extension}"
     storage_path = STORAGE_DIR / storage_filename
 
@@ -258,7 +258,11 @@ def delete_image(
 
         storage_path = STORAGE_DIR / image.storage_filename
 
+        thumbnail_filename = f"{Path(image.storage_filename).stem}.webp"
+        thumbnail_path = THUMBNAIL_DIR / thumbnail_filename
+
         db.delete(image)
         db.commit()
 
         storage_path.unlink(missing_ok=True)
+        thumbnail_path.unlink(missing_ok=True)
