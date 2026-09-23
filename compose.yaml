@@ -1,6 +1,8 @@
 services:
   nginx:
     image: nginx:alpine
+    depends_on:
+      - backend
     ports:
       - "80:80"
     volumes:

@@ -1,6 +1,7 @@
-# Environment
-# Local environment variables and secrets
+# Environment files
 .env
+.env.*
+!.env.example
 
 # Temporary / editor files
 # Editor backup and temporary files
