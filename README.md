@@ -34,7 +34,39 @@ The current backend includes:
 * Docker Compose development environment
 * Development hot reload for the backend
 
-The frontend dashboard is planned next.
+The frontend has now been scaffolded using React, TypeScript, and Vite and is running in its own Node-based development container.
+
+The frontend is currently only a minimal starting point. The actual dashboard and image management UI are still under development.
+
+## Frontend Development
+
+The frontend is built with:
+
+* React
+* TypeScript
+* Vite
+
+During development, the frontend runs in its own Docker container using Node.js and Vite.
+
+The frontend source directory is bind-mounted into the container, allowing Vite's Hot Module Replacement (HMR) to update the application while the source files are edited locally.
+
+The development request flow is:
+
+```text
+Browser
+    │
+    ▼
+Nginx
+    │
+    ├── /       → Frontend / Vite
+    ├── /api/   → FastAPI
+    ├── /i/     → Original images
+    └── /t/     → Image thumbnails
+```
+
+The Vite project was initially generated using the official React + TypeScript template. The generated project files are part of the repository and are used as the frontend application's source code.
+
+The production frontend build and deployment setup will be documented separately once the production environment is implemented.
 
 ## Architecture
 
