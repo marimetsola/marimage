@@ -121,6 +121,14 @@ def get_me(current_user: User = Depends(get_current_user)):
     return current_user
 
 
+@app.get("/api/config")
+def get_config():
+    return {
+        "register_enabled": os.getenv("REGISTER_ENABLED", "false").lower()
+        == "true"
+    }
+
+
 @app.get("/api/images", response_model=list[ImageResponse])
 def get_my_images(
     current_user: User = Depends(get_current_user),

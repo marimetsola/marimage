@@ -1,8 +1,10 @@
 services:
   nginx:
     image: nginx:alpine
+    restart: unless-stopped
     depends_on:
       - backend
+      - frontend
     ports:
       - "80:80"
     volumes:
