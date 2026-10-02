@@ -3,6 +3,7 @@ import Header from './components/Header'
 import { useAppConfig } from './hooks/useAppConfig'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import { useCurrentUser } from './hooks/useCurrentUser'
 
 function Home({ registerEnabled }: { registerEnabled: boolean }) {
   return (
@@ -28,11 +29,18 @@ function Images() {
 
 function App() {
   const { registerEnabled } = useAppConfig()
+  const { user, loading } = useCurrentUser()
 
   return (
     <>
       <Header />
-
+      {loading ? (
+        <p>Loading...</p>
+      ) : user ? (
+        <p>Logged in as {user.username}</p>
+      ) : (
+        <p>Not logged in</p>
+      )}
       <main>
         <Routes>
           <Route
