@@ -1,9 +1,11 @@
 import { FormEvent, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
+import { useAuth } from '../context/AuthContext'
 import FormInput from '../components/FormInput'
 
 function Login() {
   const navigate = useNavigate()
+  const { refreshUser } = useAuth()
 
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -35,6 +37,7 @@ function Login() {
         return
       }
 
+      await refreshUser()
       navigate('/upload')
     } catch (error) {
       console.error('Login failed:', error)

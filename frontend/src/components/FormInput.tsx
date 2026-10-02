@@ -22,6 +22,7 @@ function FormInput({
       return
     }
 
+    // Check if running on desktop with a mouse
     const desktop = window.matchMedia(
       '(hover: hover) and (pointer: fine)',
     ).matches
