@@ -52,6 +52,7 @@ function Login() {
         <FormInput
           label="Username"
           name="username"
+          autoFocus
         />
 
         <FormInput

@@ -59,6 +59,7 @@ function Register() {
         <FormInput
           label="Username"
           name="username"
+          autoFocus
         />
 
         <FormInput
