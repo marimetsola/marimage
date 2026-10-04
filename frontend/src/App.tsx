@@ -2,6 +2,7 @@ import { Link, Route, Routes } from 'react-router'
 import { useAuth } from './context/AuthContext'
 import { useAppConfig } from './hooks/useAppConfig'
 import Header from './components/Header'
+import PublicOnlyRoute from './components/PublicOnlyRoute'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -51,8 +52,10 @@ function App() {
             element={<Home registerEnabled={registerEnabled} />}
           />
 
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          <Route element={<PublicOnlyRoute />}>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+          </Route>
 
           <Route element={<ProtectedRoute />}>
             <Route path="/upload" element={<Upload />} />
