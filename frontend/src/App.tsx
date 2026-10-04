@@ -2,6 +2,7 @@ import { Link, Route, Routes } from 'react-router'
 import { useAuth } from './context/AuthContext'
 import { useAppConfig } from './hooks/useAppConfig'
 import Header from './components/Header'
+import AuthNavigation from './components/AuthNavigation'
 import PublicOnlyRoute from './components/PublicOnlyRoute'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
@@ -37,13 +38,11 @@ function App() {
     <>
       <Header />
 
-      {loading ? (
-        <p>Loading...</p>
-      ) : (
-        <p>
-          {user ? `Logged in as ${user.username}` : 'Not logged in'}
-        </p>
-      )}
+        {loading ? (
+          <p>Loading...</p>
+        ) : user ? (
+          <AuthNavigation />
+        ) : null}
 
       <main>
         <Routes>
