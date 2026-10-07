@@ -1,13 +1,30 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { useAuth } from '../context/AuthContext'
 
 function Header() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
-
+  const menuRef = useRef<HTMLDivElement>(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [logoutError, setLogoutError] = useState('')
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(event.target as Node)
+      ) {
+        setMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
 
   async function handleLogout() {
     setLogoutError('')
@@ -23,12 +40,15 @@ function Header() {
   }
 
   return (
-    <header>
-      <Link to="/">Image Host</Link>
+    <header className="header">
+      <Link className="header-logo" to={user ? '/upload' : '/'}>
+        Image Host
+      </Link>
 
       {user && (
-        <>
+        <div className="header-menu" ref={menuRef}>
           <button
+            className="menu-button"
             type="button"
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="Open menu"
@@ -38,12 +58,15 @@ function Header() {
           </button>
 
           {menuOpen && (
-            <div>
-              <p>Image Host</p>
+            <div className="menu">
+              <p className="menu-title">Image Host</p>
 
-              {logoutError && <p>{logoutError}</p>}
+              {logoutError && (
+                <p className="menu-error">{logoutError}</p>
+              )}
 
               <button
+                className="menu-item"
                 type="button"
                 onClick={handleLogout}
               >
@@ -51,7 +74,7 @@ function Header() {
               </button>
             </div>
           )}
-        </>
+        </div>
       )}
     </header>
   )

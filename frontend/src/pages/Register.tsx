@@ -52,32 +52,47 @@ function Register() {
   }
 
   return (
-    <section>
-      <h1>Register</h1>
+    <section className="auth-page">
+      <div className="auth-card">
+        <h1>Register</h1>
 
-      <form onSubmit={handleSubmit}>
-        <FormInput
-          label="Username"
-          name="username"
-          autoFocus
-        />
+        <form onSubmit={handleSubmit} className="auth-form">
+          <FormInput
+            label="Username"
+            name="username"
+            autoFocus
+            onChange={() => setError('')}
+          />
 
-        <FormInput
-          label="Password"
-          name="password"
-          type="password"
-        />
+          <FormInput
+            label="Password"
+            name="password"
+            type="password"
+            onChange={() => setError('')}
+          />
 
-        {error && <p>{error}</p>}
+          <p
+            className={`form-error${error ? '' : ' form-error-hidden'}`}
+            aria-live="polite"
+          >
+            {error}
+          </p>
 
-        <button type="submit" disabled={submitting}>
-          {submitting ? 'Registering...' : 'Register'}
-        </button>
-      </form>
+          <button
+            className="button"
+            type="submit"
+            disabled={submitting}
+          >
+            {submitting ? 'Registering...' : 'Register'}
+          </button>
+        </form>
 
-      <Link to="/">Back</Link>
+        <Link className="back-link" to="/">
+          Back
+        </Link>
+      </div>
     </section>
-  )
+  )  
 }
 
 export default Register

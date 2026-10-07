@@ -6,6 +6,7 @@ interface FormInputProps {
   type?: 'text' | 'password' | 'email'
   required?: boolean
   autoFocus?: boolean
+  onChange?: () => void
 }
 
 function FormInput({
@@ -14,6 +15,7 @@ function FormInput({
   type = 'text',
   required = true,
   autoFocus = false,
+  onChange,
 }: FormInputProps) {
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -33,7 +35,7 @@ function FormInput({
   }, [autoFocus])
 
   return (
-    <div>
+    <div className="form-field">
       <label htmlFor={name}>{label}</label>
       <input
         ref={inputRef}
@@ -41,6 +43,7 @@ function FormInput({
         name={name}
         type={type}
         required={required}
+        onChange={onChange}
       />
     </div>
   )

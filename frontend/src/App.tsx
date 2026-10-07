@@ -1,23 +1,38 @@
-import { Link, Route, Routes } from 'react-router'
+import { Navigate, Link, Route, Routes } from 'react-router'
 import { useAuth } from './context/AuthContext'
 import { useAppConfig } from './hooks/useAppConfig'
 import Header from './components/Header'
 import AuthNavigation from './components/AuthNavigation'
-import PublicOnlyRoute from './components/PublicOnlyRoute'
-import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import PublicOnlyRoute from './components/PublicOnlyRoute'
+import ProtectedRoute from './components/ProtectedRoute'
+import './App.css'
 
 function Home({ registerEnabled }: { registerEnabled: boolean }) {
+  const { user } = useAuth()
+
+  if (user) {
+    return <Navigate to="/upload" replace />
+  }
+
   return (
-    <section>
-      <h1>Image Host</h1>
+    <section className="home">
+      <div className="home-content">
+        <h1>Image Host</h1>
 
-      <Link to="/login">Log in</Link>
+        <div className="home-actions">
+          <Link className="button" to="/login">
+            Log in
+          </Link>
 
-      {registerEnabled && (
-        <Link to="/register">Register</Link>
-      )}
+          {registerEnabled && (
+            <Link className="button button-secondary" to="/register">
+              Register
+            </Link>
+          )}
+        </div>
+      </div>
     </section>
   )
 }
@@ -35,34 +50,36 @@ function App() {
   const { registerEnabled } = useAppConfig()
 
   return (
-    <>
+    <div className="app">
       <Header />
 
-        {loading ? (
-          <p>Loading...</p>
-        ) : user ? (
-          <AuthNavigation />
-        ) : null}
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <>
+          {user && <AuthNavigation />}
 
-      <main>
-        <Routes>
-          <Route
-            path="/"
-            element={<Home registerEnabled={registerEnabled} />}
-          />
+          <main>
+            <Routes>
+              <Route
+                path="/"
+                element={<Home registerEnabled={registerEnabled} />}
+              />
 
-          <Route element={<PublicOnlyRoute />}>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-          </Route>
+              <Route element={<PublicOnlyRoute />}>
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+              </Route>
 
-          <Route element={<ProtectedRoute />}>
-            <Route path="/upload" element={<Upload />} />
-            <Route path="/images" element={<Images />} />
-          </Route>
-        </Routes>
-      </main>
-    </>
+              <Route element={<ProtectedRoute />}>
+                <Route path="/upload" element={<Upload />} />
+                <Route path="/images" element={<Images />} />
+              </Route>
+            </Routes>
+          </main>
+        </>
+      )}
+    </div>
   )
 }
 

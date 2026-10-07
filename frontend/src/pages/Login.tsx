@@ -48,30 +48,45 @@ function Login() {
   }
 
   return (
-    <section>
-      <h1>Log in</h1>
+    <section className="auth-page">
+      <div className="auth-card">
+        <h1>Log in</h1>
 
-      <form onSubmit={handleSubmit}>
-        <FormInput
-          label="Username"
-          name="username"
-          autoFocus
-        />
+        <form onSubmit={handleSubmit} className="auth-form">
+          <FormInput
+            label="Username"
+            name="username"
+            autoFocus
+            onChange={() => setError('')}
+          />
 
-        <FormInput
-          label="Password"
-          name="password"
-          type="password"
-        />
+          <FormInput
+            label="Password"
+            name="password"
+            type="password"
+            onChange={() => setError('')}
+          />
 
-        {error && <p>{error}</p>}
+          <p
+            className={`form-error${error ? '' : ' form-error-hidden'}`}
+            aria-live="polite"
+          >
+            {error}
+          </p>
 
-        <button type="submit" disabled={submitting}>
-          {submitting ? 'Logging in...' : 'Log in'}
-        </button>
-      </form>
+          <button
+            className="button"
+            type="submit"
+            disabled={submitting}
+          >
+            {submitting ? 'Logging in...' : 'Log in'}
+          </button>
+        </form>
 
-      <Link to="/">Back</Link>
+        <Link className="back-link" to="/">
+          Back
+        </Link>
+      </div>
     </section>
   )
 }

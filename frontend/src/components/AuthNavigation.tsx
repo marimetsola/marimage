@@ -2,9 +2,24 @@ import { NavLink } from 'react-router'
 
 function AuthNavigation() {
   return (
-    <nav aria-label="Main navigation">
-      <NavLink to="/upload">Upload</NavLink>
-      <NavLink to="/images">My Images</NavLink>
+    <nav className="auth-navigation" aria-label="Main navigation">
+      <NavLink
+        className={({ isActive }) =>
+          isActive ? 'nav-link active' : 'nav-link'
+        }
+        to="/upload"
+      >
+        Upload
+      </NavLink>
+
+      <NavLink
+        className={({ isActive }) =>
+          isActive ? 'nav-link active' : 'nav-link'
+        }
+        to="/images"
+      >
+        My Images
+      </NavLink>
     </nav>
   )
 }
