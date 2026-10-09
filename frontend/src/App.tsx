@@ -5,6 +5,7 @@ import Header from './components/Header'
 import AuthNavigation from './components/AuthNavigation'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import Upload from './pages/Upload'
 import PublicOnlyRoute from './components/PublicOnlyRoute'
 import ProtectedRoute from './components/ProtectedRoute'
 import './App.css'
@@ -35,10 +36,6 @@ function Home({ registerEnabled }: { registerEnabled: boolean }) {
       </div>
     </section>
   )
-}
-
-function Upload() {
-  return <h1>Upload</h1>
 }
 
 function Images() {

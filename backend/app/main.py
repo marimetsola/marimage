@@ -227,6 +227,7 @@ def upload_image(
                 file_size=file_size,
                 uploaded_at=image.uploaded_at,
                 url=f"/i/{image.storage_filename}",
+                thumbnail_url=f"/t/{thumbnail_filename}",
             )
 
     except ValueError as exc:
