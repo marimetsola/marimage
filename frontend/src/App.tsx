@@ -6,6 +6,7 @@ import AuthNavigation from './components/AuthNavigation'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Upload from './pages/Upload'
+import MyImages from './pages/MyImages'
 import PublicOnlyRoute from './components/PublicOnlyRoute'
 import ProtectedRoute from './components/ProtectedRoute'
 import './App.css'
@@ -38,10 +39,6 @@ function Home({ registerEnabled }: { registerEnabled: boolean }) {
   )
 }
 
-function Images() {
-  return <h1>My Images</h1>
-}
-
 function App() {
   const { user, loading } = useAuth()
   const { registerEnabled } = useAppConfig()
@@ -70,7 +67,7 @@ function App() {
 
               <Route element={<ProtectedRoute />}>
                 <Route path="/upload" element={<Upload />} />
-                <Route path="/images" element={<Images />} />
+                <Route path="/images" element={<MyImages />} />
               </Route>
             </Routes>
           </main>
