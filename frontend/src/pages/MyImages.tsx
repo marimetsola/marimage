@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import ConfirmDialog from '../components/ConfirmDialog'
+import ImageViewer from '../components/ImageViewer'
 
 interface ImageResponse {
   id: number
@@ -34,6 +35,7 @@ function MyImages() {
   const [images, setImages] = useState<ImageResponse[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [viewingImage, setViewingImage] = useState<ImageResponse | null>(null)
 
   const [copiedImageId, setCopiedImageId] = useState<number | null>(null)
   const [copyErrorId, setCopyErrorId] = useState<number | null>(null)
@@ -235,20 +237,20 @@ function MyImages() {
 
               return (
                 <article className="image-card" key={image.id}>
-                  <a
+
+                  <button
                     className="image-card-preview"
-                    href={imageUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label={`Open ${image.original_filename}`}
+                    type="button"
+                    onClick={() => setViewingImage(image)}
+                    aria-label={`View ${image.original_filename}`}
                   >
                     <img
                       className="image-card-thumbnail"
                       src={thumbnailUrl}
-                      alt={image.original_filename}
+                      alt=""
                       loading="lazy"
                     />
-                  </a>
+                  </button>
 
                   <div className="image-card-details">
                     <h2 title={image.original_filename}>
@@ -342,6 +344,18 @@ function MyImages() {
         onConfirm={handleDeleteImage}
         onCancel={closeDeleteDialog}
       />
+
+      {viewingImage && (
+        <ImageViewer
+          src={new URL(
+            viewingImage.url,
+            window.location.origin,
+          ).toString()}
+          alt={viewingImage.original_filename}
+          onClose={() => setViewingImage(null)}
+        />
+      )}
+
     </section>
   )
 }
