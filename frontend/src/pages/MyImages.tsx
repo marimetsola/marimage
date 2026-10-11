@@ -312,7 +312,7 @@ function MyImages() {
                     </p>
 
                     <button
-                      className="button button-danger image-delete-button"
+                      className="image-delete-button"
                       type="button"
                       disabled={deletingImageId !== null}
                       onClick={() => openDeleteDialog(image)}
