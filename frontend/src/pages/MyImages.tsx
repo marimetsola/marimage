@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import ConfirmDialog from '../components/ConfirmDialog'
 import ImageViewer from '../components/ImageViewer'
 
@@ -10,6 +10,53 @@ interface ImageResponse {
   uploaded_at: string
   url: string
   thumbnail_url: string
+}
+
+interface DeleteNotice {
+  id: number
+  filename: string
+}
+
+function DeleteToast({
+  notice,
+  onDismiss,
+}: {
+  notice: DeleteNotice
+  onDismiss: (id: number) => void
+}) {
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      onDismiss(notice.id)
+    }, 4000)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
+  }, [notice.id, onDismiss])
+
+  return (
+    <div className="delete-toast" role="status">
+      <div className="delete-toast-message">
+        <strong>Image deleted</strong>
+
+        <span
+          className="delete-toast-filename"
+          title={notice.filename}
+        >
+          {notice.filename}
+        </span>
+      </div>
+
+      <button
+        className="delete-toast-close"
+        type="button"
+        aria-label={`Dismiss notification for ${notice.filename}`}
+        onClick={() => onDismiss(notice.id)}
+      >
+        <span aria-hidden="true">×</span>
+      </button>
+    </div>
+  )
 }
 
 function formatFileSize(bytes: number): string {
@@ -44,6 +91,15 @@ function MyImages() {
     useState<ImageResponse | null>(null)
   const [deletingImageId, setDeletingImageId] = useState<number | null>(null)
   const [deleteError, setDeleteError] = useState('')
+
+  const [deleteNotices, setDeleteNotices] = useState<DeleteNotice[]>([])
+  const nextDeleteNoticeId = useRef(1)
+
+  const dismissDeleteNotice = useCallback((id: number) => {
+    setDeleteNotices((currentNotices) =>
+      currentNotices.filter((notice) => notice.id !== id),
+    )
+  }, [])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -167,6 +223,19 @@ function MyImages() {
         currentImages.filter(
           (image) => image.id !== imageToDelete.id,
         ),
+      )
+
+      const noticeId = nextDeleteNoticeId.current
+      nextDeleteNoticeId.current += 1
+
+      setDeleteNotices((currentNotices) =>
+        [
+          ...currentNotices,
+          {
+            id: noticeId,
+            filename: imageToDelete.original_filename,
+          },
+        ].slice(-3),
       )
 
       setCopiedImageId((currentId) =>
@@ -328,6 +397,18 @@ function MyImages() {
           </div>
         )}
       </div>
+
+      {deleteNotices.length > 0 && (
+        <div className="delete-toast-container" aria-label="Notifications">
+          {deleteNotices.map((notice) => (
+            <DeleteToast
+              key={notice.id}
+              notice={notice}
+              onDismiss={dismissDeleteNotice}
+            />
+          ))}
+        </div>
+      )}
 
       <ConfirmDialog
         open={pendingDelete !== null}
