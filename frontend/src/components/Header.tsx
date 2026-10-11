@@ -32,7 +32,7 @@ function Header() {
     try {
       await logout()
       setMenuOpen(false)
-      navigate('/login')
+      navigate('/')
     } catch (error) {
       console.error('Logout failed:', error)
       setLogoutError('Logout failed.')
