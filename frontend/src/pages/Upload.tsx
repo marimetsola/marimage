@@ -4,6 +4,7 @@ import {
   type ChangeEvent,
   type FormEvent,
 } from 'react'
+import ImageViewer from '../components/ImageViewer'
 
 interface ImageResponse {
   id: number
@@ -18,7 +19,9 @@ interface ImageResponse {
 function Upload() {
   const [file, setFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [uploadedImage, setUploadedImage] = useState<ImageResponse | null>(null)
+  const [uploadedImage, setUploadedImage] =
+    useState<ImageResponse | null>(null)
+  const [isImageViewerOpen, setIsImageViewerOpen] = useState(false)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [copyStatus, setCopyStatus] = useState<
@@ -83,6 +86,7 @@ function Upload() {
       }
 
       setUploadedImage(data as ImageResponse)
+      setIsImageViewerOpen(false)
       setCopyStatus('idle')
       setFile(null)
       form.reset()
@@ -114,6 +118,7 @@ function Upload() {
   }
 
   function handleUploadAnother() {
+    setIsImageViewerOpen(false)
     setUploadedImage(null)
     setFile(null)
     setError('')
@@ -124,6 +129,13 @@ function Upload() {
     ? new URL(uploadedImage.url, window.location.origin).toString()
     : ''
 
+  const uploadedThumbnailUrl = uploadedImage
+    ? new URL(
+        uploadedImage.thumbnail_url,
+        window.location.origin,
+      ).toString()
+    : ''
+
   return (
     <section className="upload-page">
       <div className="upload-content">
@@ -131,23 +143,25 @@ function Upload() {
           <div className="upload-success">
             <h1>Image uploaded</h1>
 
-            <a
+            <button
               className="upload-result-preview"
-              href={uploadedImageUrl}
-              target="_blank"
-              rel="noreferrer"
-              aria-label="Open original image"
+              type="button"
+              onClick={() => setIsImageViewerOpen(true)}
+              aria-label={`View ${uploadedImage.original_filename} full size`}
             >
               <img
                 className="upload-result-image"
-                src={uploadedImage.thumbnail_url}
-                alt={uploadedImage.original_filename}
+                src={uploadedThumbnailUrl}
+                alt=""
               />
-            </a>
 
-            <p className="upload-filename">
-              {uploadedImage.original_filename}
-            </p>
+              <span
+                className="upload-result-filename"
+                title={uploadedImage.original_filename}
+              >
+                {uploadedImage.original_filename}
+              </span>
+            </button>
 
             <div className="upload-url-field">
               <label htmlFor="uploaded-image-url">
@@ -250,6 +264,14 @@ function Upload() {
           </>
         )}
       </div>
+
+      {uploadedImage && isImageViewerOpen && (
+        <ImageViewer
+          src={uploadedImageUrl}
+          alt={uploadedImage.original_filename}
+          onClose={() => setIsImageViewerOpen(false)}
+        />
+      )}
     </section>
   )
 }
