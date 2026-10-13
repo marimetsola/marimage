@@ -650,7 +650,7 @@ main {
 
 .image-copy-feedback {
   min-height: 1.35em;
-  margin: 8px 0 0;
+  margin: 0;
   color: var(--color-text-muted);
   font-size: 0.8rem;
   overflow-wrap: anywhere;
@@ -673,7 +673,7 @@ main {
 .image-delete-button {
   display: block;
   min-height: 36px;
-  margin: 8px 0 0 auto;
+  margin: 0 0 0 auto;
   padding: 4px 8px;
   border: 1px solid transparent;
   border-radius: var(--radius-small);
