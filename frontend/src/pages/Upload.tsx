@@ -5,6 +5,7 @@ import {
   type FormEvent,
 } from 'react'
 import ImageViewer from '../components/ImageViewer'
+import './Upload.css'
 
 interface ImageResponse {
   id: number

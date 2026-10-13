@@ -6,6 +6,8 @@ import {
   type WheelEvent as ReactWheelEvent,
 } from 'react'
 
+import './ImageViewer.css'
+
 interface ImageViewerProps {
   src: string
   alt: string

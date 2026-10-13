@@ -41,9 +41,9 @@ function Header() {
 
   return (
     <header className="header">
-      <Link className="header-logo" to={user ? '/upload' : '/'}>
+      <span className="header-logo">
         Image Host
-      </Link>
+      </span>
 
       {user && (
         <div className="header-menu" ref={menuRef}>

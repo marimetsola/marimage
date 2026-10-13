@@ -1,0 +1,139 @@
+/* Image viewer / lightbox */
+
+.image-viewer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: var(--color-overlay, rgba(0, 0, 0, 0.85));
+}
+
+.image-viewer-toolbar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 2010;
+  display: flex;
+  align-items: center;
+  min-height: 64px;
+  padding: 8px 76px 8px 20px;
+  pointer-events: none;
+}
+
+.image-viewer-title {
+  max-width: 100%;
+  margin: 0;
+  overflow: hidden;
+  color: #eeeeea;
+  font-size: 0.9rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.image-viewer-close {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  right: max(12px, env(safe-area-inset-right));
+  z-index: 2020;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  background: rgba(35, 35, 33, 0.9);
+  color: #eeeeea;
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.image-viewer-close:hover {
+  background: rgba(70, 70, 66, 0.95);
+}
+
+.image-viewer-viewport {
+  position: fixed;
+  inset: 64px 0 76px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  touch-action: none;
+  overscroll-behavior: contain;
+  cursor: zoom-out;
+}
+
+.image-viewer-viewport:active {
+  cursor: grabbing;
+}
+
+.image-viewer-image {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 160px);
+  max-height: calc(100dvh - 160px);
+  object-fit: contain;
+  transform-origin: center center;
+  user-select: none;
+  -webkit-user-drag: none;
+  cursor: grab;
+  pointer-events: auto;
+}
+
+.image-viewer-image:active {
+  cursor: grabbing;
+}
+
+.image-viewer-controls {
+  position: fixed;
+  right: 0;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  left: 0;
+  z-index: 2010;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.image-viewer-controls button {
+  min-width: 44px;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-medium);
+  background: rgba(35, 35, 33, 0.95);
+  color: #eeeeea;
+  font: inherit;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.image-viewer-controls button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.image-viewer-controls button:focus-visible,
+.image-viewer-close:focus-visible {
+  outline: 2px solid #eeeeea;
+  outline-offset: 3px;
+}
+
+@media (max-width: 480px) {
+  .image-viewer-viewport {
+    inset: 64px 0 72px;
+  }
+
+  .image-viewer-image {
+    max-width: calc(100vw - 20px);
+    max-height: calc(100dvh - 140px);
+  }
+}

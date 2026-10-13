@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import ConfirmDialog from '../components/ConfirmDialog'
 import ImageViewer from '../components/ImageViewer'
+import './MyImages.css'
 
 interface ImageResponse {
   id: number

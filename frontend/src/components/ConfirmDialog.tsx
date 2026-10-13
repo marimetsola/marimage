@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import './ConfirmDialog.css'
 
 interface ConfirmDialogProps {
   open: boolean
