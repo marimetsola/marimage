@@ -4,16 +4,18 @@ services:
     restart: unless-stopped
     depends_on:
       - backend
-      - frontend
     ports:
-      - "80:80"
+      - "${NGINX_BIND_IP:-0.0.0.0}:${NGINX_PORT:-80}:80"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      - ${IMAGE_DIR}:/usr/share/nginx/html/i:ro
-      - ${THUMBNAIL_DIR}:/usr/share/nginx/html/t:ro
+      - ${NGINX_CONFIG:-./nginx/nginx.conf}:/etc/nginx/conf.d/default.conf:ro
+      - ${IMAGE_DIR}:/usr/share/nginx/html/i:ro,z
+      - ${THUMBNAIL_DIR}:/usr/share/nginx/html/t:ro,z
 
   backend:
     build: ./backend
+    depends_on:
+      db:
+        condition: service_healthy
     environment:
       DATABASE_URL: postgresql+psycopg://imagehost:${POSTGRES_PASSWORD}@db:5432/imagehost
       REGISTER_ENABLED: ${REGISTER_ENABLED}
@@ -22,8 +24,8 @@ services:
       APP_NAME: ${APP_NAME:-Image Host}
       THUMBNAIL_DIR: /app/thumbnails
     volumes:
-      - ${IMAGE_DIR}:/app/images    
-      - ${THUMBNAIL_DIR}:/app/thumbnails
+      - ${IMAGE_DIR}:/app/images:z
+      - ${THUMBNAIL_DIR}:/app/thumbnails:z
 
   db:
     image: postgres:18
@@ -33,6 +35,11 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U imagehost -d imagehost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
 volumes:
   postgres_data:

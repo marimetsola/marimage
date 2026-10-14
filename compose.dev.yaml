@@ -20,5 +20,10 @@ services:
     depends_on:
       - backend
 
+  nginx:
+    depends_on:
+      - backend
+      - frontend
+
 volumes:
   frontend_node_modules:

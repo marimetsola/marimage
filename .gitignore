@@ -10,13 +10,13 @@
 
 # Uploaded images
 # Uploaded images are runtime data and should not be stored in Git
-storage/images/*
+storage/dev/images/*
 # Keep the directory itself in the repository
-!storage/images/.gitkeep
+!storage/dev/images/.gitkeep
 
-# Generated thumbnails
-storage/thumbnails/*
-!storage/thumbnails/.gitkeep
+# Generated development thumbnails
+storage/dev/thumbnails/*
+!storage/dev/thumbnails/.gitkeep
 
 # Python cache / compiled files
 __pycache__/
@@ -36,3 +36,9 @@ build/
 # Vim swap files
 *.swp
 *.swo
+
+# Local production-test uploads and thumbnails
+storage/prod/images/*
+!storage/prod/images/.gitkeep
+storage/prod/thumbnails/*
+!storage/prod/thumbnails/.gitkeep

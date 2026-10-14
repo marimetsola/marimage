@@ -1,9 +1,15 @@
 services:
-  db:
+  nginx:
+    image: marimage-web:prod
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile.prod
     restart: unless-stopped
+    depends_on:
+      - backend
 
   backend:
     restart: unless-stopped
 
-  nginx:
+  db:
     restart: unless-stopped
