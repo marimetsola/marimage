@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router'
 import { useAuth } from '../context/AuthContext'
 import AuthNavigation from './AuthNavigation'
 
-function Header() {
+function Header({ appName }: { appName: string }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const menuRef = useRef<HTMLDivElement>(null)
@@ -42,9 +42,16 @@ function Header() {
 
   return (
     <header className="header">
-      <span className="header-logo">
-        Image Host
-      </span>
+      <div className="header-brand">
+        <img
+          className="header-icon"
+          src="/favicon.ico"
+          alt=""
+          width="32"
+          height="32"
+        />
+        <span className="header-logo">{appName}</span>
+      </div>
 
       {user && <AuthNavigation />}
 
@@ -62,7 +69,7 @@ function Header() {
 
           {menuOpen && (
             <div className="menu">
-              <p className="menu-title">Image Host</p>
+              <p className="menu-title">{appName}</p>
 
               {logoutError && (
                 <p className="menu-error">{logoutError}</p>

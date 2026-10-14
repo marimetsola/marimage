@@ -124,6 +124,8 @@ def get_me(current_user: User = Depends(get_current_user)):
 @app.get("/api/config")
 def get_config():
     return {
+        "app_name": os.getenv("APP_NAME", "Image Host").strip()
+        or "Image Host",
         "register_enabled": os.getenv("REGISTER_ENABLED", "false").lower()
         == "true"
     }

@@ -1,4 +1,11 @@
-import { Navigate, Link, Route, Routes } from 'react-router'
+import {
+  Navigate,
+  Link,
+  Route,
+  Routes,
+  useLocation,
+} from 'react-router'
+import { useEffect } from 'react'
 import { useAuth } from './context/AuthContext'
 import { useAppConfig } from './hooks/useAppConfig'
 import Header from './components/Header'
@@ -10,7 +17,20 @@ import PublicOnlyRoute from './components/PublicOnlyRoute'
 import ProtectedRoute from './components/ProtectedRoute'
 import './App.css'
 
-function Home({ registerEnabled }: { registerEnabled: boolean }) {
+const pageTitles: Record<string, string> = {
+  '/upload': 'Upload',
+  '/images': 'My Images',
+  '/login': 'Log in',
+  '/register': 'Register',
+}
+
+function Home({
+  registerEnabled,
+  appName,
+}: {
+  registerEnabled: boolean
+  appName: string
+}) {
   const { user } = useAuth()
 
   if (user) {
@@ -20,7 +40,7 @@ function Home({ registerEnabled }: { registerEnabled: boolean }) {
   return (
     <section className="home">
       <div className="home-content">
-        <h1>Image Host</h1>
+        <h1>{appName}</h1>
 
         <div className="home-actions">
           <Link className="button" to="/login">
@@ -40,11 +60,17 @@ function Home({ registerEnabled }: { registerEnabled: boolean }) {
 
 function App() {
   const { loading } = useAuth()
-  const { registerEnabled } = useAppConfig()
+  const { registerEnabled, appName } = useAppConfig()
+  const location = useLocation()
+
+  useEffect(() => {
+    const pageTitle = pageTitles[location.pathname]
+    document.title = pageTitle ? `${pageTitle} | ${appName}` : appName
+  }, [location.pathname, appName])
 
   return (
     <div className="app">
-      <Header />
+      <Header appName={appName} />
 
       {loading ? (
         <p>Loading...</p>
@@ -53,7 +79,12 @@ function App() {
           <Routes>
             <Route
               path="/"
-              element={<Home registerEnabled={registerEnabled} />}
+              element={
+                <Home
+                  registerEnabled={registerEnabled}
+                  appName={appName}
+                />
+              }
             />
 
             <Route element={<PublicOnlyRoute />}>

@@ -19,6 +19,7 @@ services:
       REGISTER_ENABLED: ${REGISTER_ENABLED}
       SESSION_SECRET: ${SESSION_SECRET}
       STORAGE_DIR: /app/images
+      APP_NAME: ${APP_NAME:-Image Host}
       THUMBNAIL_DIR: /app/thumbnails
     volumes:
       - ${IMAGE_DIR}:/app/images    

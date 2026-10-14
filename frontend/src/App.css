@@ -304,6 +304,21 @@ main {
   color: var(--color-text);
 }
 
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.header-icon {
+  display: block;
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 /* Desktop layout */
 
 @media (min-width: 768px) {
