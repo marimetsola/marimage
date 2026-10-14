@@ -277,7 +277,7 @@ main {
   text-align: center;
 }
 
-/* Authenticated navigation */
+/* Authenticated navigation: mobile */
 
 .auth-navigation {
   position: fixed;
@@ -302,4 +302,38 @@ main {
 
 .nav-link.active {
   color: var(--color-text);
+}
+
+/* Desktop layout */
+
+@media (min-width: 768px) {
+  main {
+    padding: 32px 32px 40px;
+  }
+
+  .auth-navigation {
+    position: static;
+    width: auto;
+    height: 100%;
+    flex: 0 0 auto;
+    gap: 8px;
+    border-top: 0;
+    background: transparent;
+  }
+
+  .nav-link {
+    flex: 0 0 auto;
+    padding: 0 14px;
+    border-radius: var(--radius-small);
+  }
+
+  .nav-link:hover,
+  .nav-link.active {
+    background: var(--color-secondary);
+    color: var(--color-text);
+  }
+
+  .menu {
+    z-index: 30;
+  }
 }

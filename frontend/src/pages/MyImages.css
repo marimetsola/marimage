@@ -9,7 +9,7 @@
 
 .images-content {
   width: 100%;
-  max-width: 1000px;
+  max-width: 1560px;
   min-width: 0;
 }
 
@@ -280,4 +280,15 @@
 .delete-toast-close:focus-visible {
   outline: 2px solid var(--color-error);
   outline-offset: 2px;
+}
+
+/* Desktop image gallery */
+@media (min-width: 768px) {
+  .images-content {
+    max-width: 1560px;
+  }
+
+  .delete-toast-container {
+    bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  }
 }

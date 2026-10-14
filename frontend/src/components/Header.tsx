@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { useNavigate } from 'react-router'
 import { useAuth } from '../context/AuthContext'
+import AuthNavigation from './AuthNavigation'
 
 function Header() {
   const { user, logout } = useAuth()
@@ -44,6 +45,8 @@ function Header() {
       <span className="header-logo">
         Image Host
       </span>
+
+      {user && <AuthNavigation />}
 
       {user && (
         <div className="header-menu" ref={menuRef}>

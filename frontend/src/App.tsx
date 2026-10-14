@@ -2,7 +2,6 @@ import { Navigate, Link, Route, Routes } from 'react-router'
 import { useAuth } from './context/AuthContext'
 import { useAppConfig } from './hooks/useAppConfig'
 import Header from './components/Header'
-import AuthNavigation from './components/AuthNavigation'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Upload from './pages/Upload'
@@ -40,7 +39,7 @@ function Home({ registerEnabled }: { registerEnabled: boolean }) {
 }
 
 function App() {
-  const { user, loading } = useAuth()
+  const { loading } = useAuth()
   const { registerEnabled } = useAppConfig()
 
   return (
@@ -50,28 +49,24 @@ function App() {
       {loading ? (
         <p>Loading...</p>
       ) : (
-        <>
-          {user && <AuthNavigation />}
+        <main>
+          <Routes>
+            <Route
+              path="/"
+              element={<Home registerEnabled={registerEnabled} />}
+            />
 
-          <main>
-            <Routes>
-              <Route
-                path="/"
-                element={<Home registerEnabled={registerEnabled} />}
-              />
+            <Route element={<PublicOnlyRoute />}>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+            </Route>
 
-              <Route element={<PublicOnlyRoute />}>
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-              </Route>
-
-              <Route element={<ProtectedRoute />}>
-                <Route path="/upload" element={<Upload />} />
-                <Route path="/images" element={<MyImages />} />
-              </Route>
-            </Routes>
-          </main>
-        </>
+            <Route element={<ProtectedRoute />}>
+              <Route path="/upload" element={<Upload />} />
+              <Route path="/images" element={<MyImages />} />
+            </Route>
+          </Routes>
+        </main>
       )}
     </div>
   )
