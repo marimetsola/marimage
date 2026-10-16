@@ -1,14 +1,14 @@
 # Marimage
 
-A self-hosted image hosting application built as a personal project and a practical learning environment for Linux server administration, Docker, networking, web services, databases, and cybersecurity.
+Marimage is a self-hosted image hosting application built as a personal project and a practical learning environment for Linux server administration, Docker, networking, web services, databases, cloud infrastructure, and cybersecurity.
 
-Marimage allows authenticated users to upload images, manage their uploads, and obtain public URLs that can be shared directly, for example in Discord.
+The application allows authenticated users to upload images, manage their uploads, and obtain public URLs that can be shared directly, for example in Discord.
 
-The application is built with React, TypeScript, FastAPI, PostgreSQL, Docker Compose, and Nginx.
+Marimage is built with React, TypeScript, FastAPI, PostgreSQL, Docker Compose, and Nginx. Caddy provides HTTPS and reverse proxy functionality in the public deployment.
 
 ## Current Status
 
-The application is functional, and separate development and local production configurations are available.
+Marimage is deployed on an Ubuntu virtual machine in Microsoft Azure and is publicly accessible over HTTPS.
 
 Implemented features include:
 
@@ -16,7 +16,7 @@ Implemented features include:
 - Session-based authentication
 - Argon2 password hashing
 - Registration controlled by an environment variable
-- Configurable application name
+- Configurable application name and browser page titles
 - Custom favicon
 - Image upload with file type and size validation
 - Generated storage filenames and original filename metadata
@@ -31,20 +31,20 @@ Implemented features include:
 - Full-size image viewer with zoom controls
 - Image deletion confirmation and notifications
 - Development hot reload for the frontend and backend
-- Separate production frontend build and Compose configuration
+- Separate development and production Docker Compose configurations
+- Production frontend build served by Nginx
+- HTTPS with automatic TLS certificate management through Caddy
+- Public deployment using a custom domain
 
-The production configuration has been built and tested locally. Deployment to a public cloud server, domain configuration, and HTTPS setup are not yet complete.
+The live deployment has registration disabled. Image uploads, account authentication, and image management have been tested in the deployed environment.
+
+Automated backups and ongoing operational monitoring remain important maintenance tasks.
 
 ## Architecture
 
-The application consists of four main services.
+The application uses separate containers for the web server, backend, and database. The frontend is served by Nginx in production, while development uses a separate Vite development server.
 
-| Service | Responsibility |
-|---|---|
-| Nginx | Serves the frontend and image files and proxies API requests |
-| Frontend | React application built with TypeScript and Vite |
-| FastAPI | Authentication, uploads, image metadata, and image management |
-| PostgreSQL | User accounts and image metadata |
+Caddy runs directly on the Ubuntu host rather than in a Docker container. It handles public HTTPS connections and forwards requests to the Nginx container.
 
 ### Development request flow
 
@@ -63,19 +63,30 @@ Nginx
    +-- /i/     --> Original images
    |
    +-- /t/     --> Image thumbnails
+
+FastAPI
+   |
+   +-- PostgreSQL
+   |
+   +-- Image storage
 ```
 
 The frontend source is bind-mounted into the development container. Vite Hot Module Replacement (HMR) updates frontend changes while the application is running. The backend uses Uvicorn's reload mode to detect Python source changes.
 
 ### Production request flow
 
-The production frontend is built into static files during the Docker image build. Nginx serves these files directly instead of using the Vite development server.
+In production, Caddy handles public HTTP and HTTPS traffic. HTTPS terminates at Caddy, which forwards requests to Nginx on the host's loopback address, port 8080.
 
 ```text
-Browser
+Internet
    |
+   | HTTPS
    v
-Nginx
+Caddy
+   |
+   | HTTP to 127.0.0.1:8080
+   v
+Nginx (Docker container)
    |
    +-- /       --> Static frontend files
    |
@@ -92,7 +103,11 @@ FastAPI
    +-- Image storage
 ```
 
-The backend and database are not published directly on host ports. Development and production use separate Compose configurations and separate database volumes.
+The frontend is compiled into static files during the Docker image build. Nginx serves those files and proxies API requests to FastAPI.
+
+The backend and database are not published directly on host ports. Nginx is bound to `127.0.0.1:8080`, preventing direct access to the container through the public network. Caddy is responsible for handling public web traffic.
+
+Development and production use separate Compose configurations, database volumes, and image storage directories.
 
 ## Technologies
 
@@ -117,11 +132,15 @@ The backend and database are not published directly on host ports. Development a
 
 ### Infrastructure
 
+- Microsoft Azure Virtual Machines
+- Ubuntu Server
 - Docker Engine
 - Docker Compose
 - Nginx
+- Caddy
 - PostgreSQL 18
-- Linux
+- SSH
+- DNS and TLS
 - SELinux on the Fedora development host
 
 ## Project Structure
@@ -163,8 +182,9 @@ image-host/
 │   └── prod-down.sh
 │
 ├── storage/
-│   ├── images/
-│   ├── thumbnails/
+│   ├── dev/
+│   │   ├── images/
+│   │   └── thumbnails/
 │   └── prod/
 │       ├── images/
 │       └── thumbnails/
@@ -172,22 +192,22 @@ image-host/
 ├── compose.yaml
 ├── compose.dev.yaml
 ├── compose.prod.yaml
-├── .env.dev
-├── .env.prod
 ├── .gitignore
 └── README.md
 ```
 
-Environment files and uploaded image data are runtime configuration and data, not application source code. They should be excluded from version control.
+Environment files, uploaded images, database contents, and private keys are runtime configuration or data rather than application source code. They must not be committed to version control.
+
+Caddy's production configuration is maintained on the Azure host in `/etc/caddy/Caddyfile`.
 
 ## Configuration
 
-The application uses environment-specific configuration files:
+The application uses environment-specific configuration files created locally or on the server:
 
 - `.env.dev` for development
-- `.env.prod` for local production testing
+- `.env.prod` for production
 
-Both files are excluded from Git. They contain configuration and secrets that must not be committed.
+These files are excluded from Git because they contain environment-specific settings and secrets. Each environment must have its own configuration.
 
 The main environment variables include:
 
@@ -209,7 +229,7 @@ Generate strong, unique secrets instead of using example values:
 openssl rand -hex 32
 ```
 
-The application name is configurable through `APP_NAME`. It is used in the header, homepage, and browser tab titles.
+The application name is configurable through `APP_NAME`. It is used in the application interface and browser page titles.
 
 ## Development Environment
 
@@ -278,23 +298,23 @@ The frontend source is bind-mounted into the development container, so most fron
 
 Avoid `docker compose down -v` unless you intentionally want to remove the associated volumes and their data.
 
-## Local Production Environment
+## Production Docker Environment
 
-The production configuration tests a deployment-like environment without running the Vite development server.
+The production configuration provides a deployment-like environment without running the Vite development server.
 
 It uses:
 
 - `compose.yaml` for shared service definitions
 - `compose.prod.yaml` for production-specific settings
 - `nginx/Dockerfile.prod` to build the frontend and create the production web image
-- `nginx/nginx.prod.conf` to serve static frontend files and proxy API requests
+- `nginx/nginx.prod.conf` to serve frontend files and proxy API requests
 - `.env.prod` for production-specific configuration
-- `scripts/prod-up.sh` to validate the configuration, build images, and start the services
-- `scripts/prod-down.sh` to stop the production test services
+- `scripts/prod-up.sh` to validate the configuration, build images, and start services
+- `scripts/prod-down.sh` to stop the production services
 
-The production frontend is compiled during the Docker image build. The resulting static files are copied into an Nginx image, so the production frontend does not require the Vite development server.
+The frontend is compiled during the Docker image build. The resulting static files are copied into an Nginx image, so the production frontend does not require the Vite development server.
 
-The local web image is tagged:
+The web image is tagged:
 
 ```text
 marimage-web:prod
@@ -302,7 +322,7 @@ marimage-web:prod
 
 ### Production storage
 
-The local production environment uses separate directories for uploaded images and generated thumbnails:
+The production environment uses separate directories for original images and generated thumbnails:
 
 ```text
 storage/prod/
@@ -312,9 +332,9 @@ storage/prod/
 
 The development and production environments should not share image directories or database volumes.
 
-The backend has read/write access to the image and thumbnail directories. Nginx mounts the same directories read-only to serve images.
+The backend has read/write access to the image and thumbnail directories. Nginx mounts these directories read-only to serve images.
 
-On SELinux-enabled systems such as Fedora, the Docker bind mounts use SELinux labels to allow access by the relevant containers. The host directories must also have suitable filesystem permissions.
+On SELinux-enabled systems such as Fedora, the Docker bind mounts use SELinux labels to allow access by the relevant containers. Host directories must also have suitable filesystem permissions.
 
 ### Starting production
 
@@ -324,15 +344,15 @@ From the project root:
 ./scripts/prod-up.sh
 ```
 
-The script validates the Compose configuration and builds the images before starting the production services.
+The script validates the Compose configuration, builds the images, and starts the production services.
 
-The local production version is accessible at:
+For local production testing, Nginx is available at:
 
 ```text
 http://127.0.0.1:8080
 ```
 
-The Nginx service is bound to the loopback address for local testing. This prevents the test service from being directly published to the network.
+The same Docker production configuration is used on the Azure server. There, Nginx remains bound to the loopback address, and Caddy forwards public requests to it.
 
 ### Stopping production
 
@@ -340,7 +360,9 @@ The Nginx service is bound to the loopback address for local testing. This preve
 ./scripts/prod-down.sh
 ```
 
-The production scripts use the Compose project name `image-host-prod`, keeping the production test containers and database volume separate from development.
+The production scripts use the Compose project name `image-host-prod`, keeping the production containers and database volume separate from development.
+
+On the live Azure server, stopping this Compose project stops Marimage's Docker services. Caddy is managed independently by systemd.
 
 ### Production diagnostics
 
@@ -355,7 +377,7 @@ sudo docker compose \
   ps
 ```
 
-Check the public application configuration:
+Check the application configuration locally on the server:
 
 ```bash
 curl http://127.0.0.1:8080/api/config
@@ -374,7 +396,47 @@ sudo docker compose \
 
 The configuration endpoint returns the public application name and the current registration setting.
 
-The local production configuration is not yet a complete public deployment. Domain configuration, HTTPS, external access rules, backups, and final production security checks remain to be completed.
+## Azure Deployment and HTTPS
+
+The live application runs on an Ubuntu virtual machine in Microsoft Azure.
+
+The deployment consists of Docker Compose services for Nginx, FastAPI, and PostgreSQL, with Caddy installed directly on the host.
+
+### Network configuration
+
+Azure network security rules allow inbound TCP traffic on ports 80 and 443 for public web access. SSH access on port 22 is restricted to an explicitly allowed source IP address.
+
+Nginx is published only on the host's loopback address:
+
+```text
+127.0.0.1:8080
+```
+
+The port is not exposed directly to the public internet.
+
+### Caddy reverse proxy
+
+Caddy receives requests for the configured domain names, handles HTTPS, and forwards requests to Nginx.
+
+The host configuration in `/etc/caddy/Caddyfile` follows this pattern:
+
+```caddyfile
+example.com, www.example.com {
+    reverse_proxy 127.0.0.1:8080
+}
+```
+
+Replace the example domain names with the domain names configured for the deployment.
+
+Caddy automatically obtains and renews TLS certificates for the configured domain names. This avoids having to manage certificate renewal manually.
+
+The production flow is:
+
+1. DNS points the domain to the Azure virtual machine's public IP address.
+2. Azure network rules allow public HTTP and HTTPS traffic.
+3. Caddy terminates HTTPS and forwards requests to Nginx.
+4. Nginx serves the frontend and image files and proxies API requests to FastAPI.
+5. FastAPI accesses PostgreSQL and the image storage directories.
 
 ## Authentication
 
@@ -398,9 +460,7 @@ Registration is controlled using:
 REGISTER_ENABLED=true
 ```
 
-Registration can be disabled by setting it to `false`.
-
-Before public deployment, session-cookie settings must be reviewed for HTTPS, including secure-cookie behavior. Public registration should remain disabled unless account creation is explicitly required.
+Set it to `false` to disable registration. The live deployment has registration disabled.
 
 ## Image Upload and Management
 
@@ -430,7 +490,7 @@ Stored filename:
 78ae810e92a24985afdfaf8a3ff2979f.png
 
 Public URL:
-https://example.invalid/i/78ae810e92a24985afdfaf8a3ff2979f.png
+https://example.com/i/78ae810e92a24985afdfaf8a3ff2979f.png
 ```
 
 The original filename is retained as metadata, while generated filenames are used for storage and public URLs.
@@ -454,7 +514,9 @@ images
 
 Each image references its owner through a foreign key.
 
-The separation between database metadata and image files makes backup, migration, and storage management easier. Database backups and image backups must both be established before public deployment.
+The separation between database metadata and image files makes backup, migration, and storage management easier. Database backups and image backups must both be included in any migration or recovery plan.
+
+Automated backups have not yet been configured, so setting up and testing backups remains an important maintenance task.
 
 ## API
 
@@ -495,35 +557,39 @@ The project includes several baseline security measures:
 - No direct host-port publishing for the backend or database
 - Environment files excluded from version control
 - Separate development and production Compose configurations
+- HTTPS provided by Caddy
+- SSH access restricted through Azure network security rules
 
-The public deployment still requires review of:
+Ongoing maintenance should include:
 
-- SSH access and server firewall rules
-- Cloud network security rules
-- HTTPS and TLS certificate management
-- Secure session cookies
-- Registration policy
+- Operating system and container image updates
+- SSH access and network rule reviews
 - Database and image backups
-- Software updates and service monitoring
-- Resource usage and upload limits
+- Backup restoration tests
+- Resource usage monitoring
+- Review of upload limits and registration settings
 
-## Planned Work
+This is a personal project and is not intended to provide the security or operational guarantees of a managed image hosting service.
 
-The next infrastructure-related tasks include:
+## Planned Improvements
 
-- Deployment to a Linux virtual machine in Azure
-- Domain and DNS configuration
-- HTTPS using a reverse proxy and TLS certificates
+Potential future work includes:
+
 - Automated database and image backups
-- Production security hardening
-- Monitoring and maintenance procedures
-
-Possible application improvements include image sorting and filtering, pagination, descriptions, tags, image dimensions, rate limiting, database migrations with Alembic, and automated deployment with Ansible.
+- Backup restoration testing
+- Resource and service monitoring
+- Image sorting and filtering
+- Pagination
+- Image descriptions and tags
+- Image dimensions and additional metadata
+- Rate limiting
+- Database schema migrations with Alembic
+- Automated deployment using Ansible
 
 ## Purpose
 
 Marimage is a personal learning and showcase project.
 
-It combines application development with practical infrastructure work: Linux administration, container management, reverse proxy configuration, storage permissions, databases, networking, and basic application security.
+It combines application development with practical infrastructure work: Linux administration, container management, reverse proxy configuration, storage permissions, databases, networking, cloud deployment, HTTPS, and basic application security.
 
-The long-term goal is to operate a small, self-hosted image hosting service while documenting the practical steps required to deploy and maintain it reliably.
+The project also provided an opportunity to use AI as a development aid while evaluating implementation options, understanding commands, and learning how the application's components fit together.
